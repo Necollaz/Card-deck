@@ -1,0 +1,175 @@
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        Casino casino = new Casino();
+        casino.Game();
+    }
+}
+
+class Casino  //Имеет доступ к игроку и колоде
+{
+    Player player = new Player();
+    CardDeck cardDeck = new CardDeck();
+
+    public void Game()
+    {
+        const string CommandTakeCard = "1";
+        const string CommandShowAllCards = "2";
+        const string CommandExit = "3";
+
+        bool isPlaying = true;
+
+        cardDeck.CreateCardsDeck();
+
+        while (isPlaying)
+        {
+            Console.WriteLine("Добро пожаловать в казино!");
+            Console.WriteLine("Максимальное количество карт на руке - 5шт., но вы можете взять меньше.");
+            Console.WriteLine("Выберите действие:");
+            Console.WriteLine($"{CommandTakeCard} - Взять карту.");
+            Console.WriteLine($"{CommandShowAllCards} - Посмотреть все карты на руке.");
+            Console.WriteLine($"{CommandExit} - Выйти из игры.");
+            string userInpur = Console.ReadLine();
+
+            switch (userInpur)
+            {
+                case CommandTakeCard:
+                    player.DrawCard(cardDeck);
+                    break;
+
+                case CommandShowAllCards:
+                    player.ShowCardsOnHand();
+                    break;
+
+                case CommandExit:
+                    isPlaying = false;
+                    Console.WriteLine("Вы вышли из игры.");
+                    break;
+
+                default:
+                    Console.WriteLine("Такого действия нет!");
+                    break;
+            }
+
+            Console.WriteLine("Нажмите любую клавишу чтобы продолжить.");
+            Console.ReadKey(); 
+            Console.Clear();
+        }
+    }
+}
+
+class CardDeck  //лист карт, умеет отдавать карту, перемешивает карты
+{
+    private List<Card> _cardsDeck = new List<Card>();
+
+    public void CreateCardsDeck()
+    {
+        _cardsDeck.Clear();
+
+        string[] meaningCards = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "Король", "Королева", "Валет", "Тус" };
+        string[] suitCards = { "Черви", "Бубны", "Пики", "Трефы" };
+
+        foreach (string meanings in meaningCards)
+        {
+            foreach (string suits in suitCards)
+            {
+                _cardsDeck.Add(new Card(meanings, suits));
+            }
+        }
+
+        Shuffle(_cardsDeck);
+    }
+
+    public Card GiveCard()
+    {
+        if(_cardsDeck.Count > 0)
+        {
+            Card cardToGive = _cardsDeck[_cardsDeck.Count - 1];
+            _cardsDeck.RemoveAt(_cardsDeck.Count - 1);
+
+            return cardToGive;
+        }
+        else
+        {
+            Console.WriteLine("Колода карт пуста.");
+
+            return null;
+        }
+    }
+
+    public void Shuffle(List<Card> cards)
+    {
+        Random random = new Random();
+
+        int amountCardsInDeck = cards.Count;
+
+        while (amountCardsInDeck > 1)
+        {
+            amountCardsInDeck--;
+            int randomValue = random.Next(amountCardsInDeck + 1);
+            Card value = cards[randomValue];
+            cards[randomValue] = cards[amountCardsInDeck];
+            cards[amountCardsInDeck] = value;
+        }
+    }
+}
+
+class Card // информация о карте
+{
+    public Card(string meaningCard, string suitCard)
+    {
+        MeaningCard = meaningCard;
+        SuitCard = suitCard;
+    }
+
+    public string MeaningCard { get; private set; }
+    public string SuitCard { get; private set; }
+
+    public void ShowInfoCard()
+    {
+        Console.WriteLine($"Карта со значением - {MeaningCard}, масть - {SuitCard}.");
+    }
+} 
+
+class Player  // хранит лист карт, умеет брать карту, может показать что на руках, проверка на макс количество карт на руке
+{
+    private List<Card> _cardsOnHand = new List<Card>();
+    private const int MaxCardsOnHand = 5;
+
+    public void DrawCard(CardDeck deck)
+    {
+        if (_cardsOnHand.Count < MaxCardsOnHand)
+        {
+            Card card = deck.GiveCard();
+
+            if (card != null)
+            {
+                _cardsOnHand.Add(card);
+            }
+            else
+            {
+                Console.WriteLine("Невозможно взять карту колода пуста.");
+            }
+        }
+        else
+        {
+            Console.WriteLine("У игрока уже максимльное количество карт!");
+        }
+    }
+
+    public void ShowCardsOnHand()
+    {
+        Console.WriteLine("\nСписок карт на руке: ");
+
+        foreach (var card in _cardsOnHand)
+        {
+            card.ShowInfoCard();
+        }  
+    }
+
+    public bool IsHandFool()
+    {
+        return _cardsOnHand.Count >= MaxCardsOnHand;
+    }
+}
