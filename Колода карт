@@ -1,3 +1,7 @@
+using System.Net.NetworkInformation;
+using System.Threading;
+using static System.Reflection.Metadata.BlobBuilder;
+
 internal class Program
 {
     private static void Main(string[] args)
@@ -20,7 +24,7 @@ class Casino  //Имеет доступ к игроку и колоде
 
         bool isPlaying = true;
 
-        cardDeck.CreateCardsDeck();
+        cardDeck.CreateDeck();
 
         while (isPlaying)
         {
@@ -59,13 +63,13 @@ class Casino  //Имеет доступ к игроку и колоде
     }
 }
 
-class CardDeck  //лист карт, умеет отдавать карту, перемешивает карты
+class CardDeck
 {
-    private List<Card> _cardsDeck = new List<Card>();
+    private List<Card> _deck = new List<Card>();
 
-    public void CreateCardsDeck()
+    public void CreateDeck()
     {
-        _cardsDeck.Clear();
+        _deck.Clear();
 
         string[] meaningCards = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "Король", "Королева", "Валет", "Тус" };
         string[] suitCards = { "Черви", "Бубны", "Пики", "Трефы" };
@@ -74,19 +78,19 @@ class CardDeck  //лист карт, умеет отдавать карту, п�
         {
             foreach (string suits in suitCards)
             {
-                _cardsDeck.Add(new Card(meanings, suits));
+                _deck.Add(new Card(meanings, suits));
             }
         }
 
-        Shuffle(_cardsDeck);
+        Shuffle(_deck);
     }
 
     public Card GiveCard()
     {
-        if(_cardsDeck.Count > 0)
+        if(_deck.Count > 0)
         {
-            Card cardToGive = _cardsDeck[_cardsDeck.Count - 1];
-            _cardsDeck.RemoveAt(_cardsDeck.Count - 1);
+            Card cardToGive = _deck[_deck.Count - 1];
+            _deck.RemoveAt(_deck.Count - 1);
 
             return cardToGive;
         }
@@ -115,7 +119,7 @@ class CardDeck  //лист карт, умеет отдавать карту, п�
     }
 }
 
-class Card // информация о карте
+class Card
 {
     public Card(string meaningCard, string suitCard)
     {
@@ -132,20 +136,22 @@ class Card // информация о карте
     }
 } 
 
-class Player  // хранит лист карт, умеет брать карту, может показать что на руках, проверка на макс количество карт на руке
+class Player
 {
     private List<Card> _cardsOnHand = new List<Card>();
-    private const int MaxCardsOnHand = 5;
+    private const int _maxCardsOnHand = 5;
 
     public void DrawCard(CardDeck deck)
     {
-        if (_cardsOnHand.Count < MaxCardsOnHand)
+        if (_cardsOnHand.Count < _maxCardsOnHand)
         {
             Card card = deck.GiveCard();
 
             if (card != null)
             {
                 _cardsOnHand.Add(card);
+                Console.WriteLine("Вы взяли карту: ");
+                card.ShowInfoCard();
             }
             else
             {
@@ -160,16 +166,18 @@ class Player  // хранит лист карт, умеет брать карт�
 
     public void ShowCardsOnHand()
     {
-        Console.WriteLine("\nСписок карт на руке: ");
-
-        foreach (var card in _cardsOnHand)
+        if (_cardsOnHand.Count > 0)
         {
-            card.ShowInfoCard();
-        }  
-    }
+            Console.WriteLine("\nСписок карт на руке: ");
 
-    public bool IsHandFool()
-    {
-        return _cardsOnHand.Count >= MaxCardsOnHand;
+            foreach (var card in _cardsOnHand)
+            {
+                card.ShowInfoCard();
+            }
+        }
+        else
+        {
+            Console.WriteLine("У Вас нет карт на руке.");
+        }
     }
 }
