@@ -6,30 +6,32 @@ internal class Program
 {
     private static void Main(string[] args)
     {
-        Casino casino = new Casino();
-        casino.Game();
+        Casino game = new Casino();
+        game.StartGame();
     }
 }
 
-class Casino  //Имеет доступ к игроку и колоде
+public class Casino
 {
-    Player player = new Player();
-    CardDeck cardDeck = new CardDeck();
+    Player user = new Player();
+    CardDeck deck = new CardDeck();
 
-    public void Game()
+    public void StartGame()
     {
         const string CommandTakeCard = "1";
         const string CommandShowAllCards = "2";
         const string CommandExit = "3";
 
+        int maxCardsOnHand = 5;
+
         bool isPlaying = true;
 
-        cardDeck.CreateDeck();
+        deck.CreateDeck();
 
         while (isPlaying)
         {
             Console.WriteLine("Добро пожаловать в казино!");
-            Console.WriteLine("Максимальное количество карт на руке - 5шт., но вы можете взять меньше.");
+            Console.WriteLine($"Максимальное количество карт на руке - {maxCardsOnHand} шт., но вы можете взять меньше.");
             Console.WriteLine("Выберите действие:");
             Console.WriteLine($"{CommandTakeCard} - Взять карту.");
             Console.WriteLine($"{CommandShowAllCards} - Посмотреть все карты на руке.");
@@ -39,11 +41,11 @@ class Casino  //Имеет доступ к игроку и колоде
             switch (userInpur)
             {
                 case CommandTakeCard:
-                    player.DrawCard(cardDeck);
+                    user.DrawCard(deck);
                     break;
 
                 case CommandShowAllCards:
-                    player.ShowCardsOnHand();
+                    user.ShowCardsOnHand();
                     break;
 
                 case CommandExit:
@@ -63,27 +65,9 @@ class Casino  //Имеет доступ к игроку и колоде
     }
 }
 
-class CardDeck
+public class CardDeck
 {
     private List<Card> _deck = new List<Card>();
-
-    public void CreateDeck()
-    {
-        _deck.Clear();
-
-        string[] meaningCards = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "Король", "Королева", "Валет", "Тус" };
-        string[] suitCards = { "Черви", "Бубны", "Пики", "Трефы" };
-
-        foreach (string meanings in meaningCards)
-        {
-            foreach (string suits in suitCards)
-            {
-                _deck.Add(new Card(meanings, suits));
-            }
-        }
-
-        Shuffle(_deck);
-    }
 
     public Card GiveCard()
     {
@@ -102,7 +86,25 @@ class CardDeck
         }
     }
 
-    public void Shuffle(List<Card> cards)
+    public void CreateDeck()
+    {
+        _deck.Clear();
+
+        string[] meaningCards = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "Король", "Королева", "Валет", "Тус" };
+        string[] suitCards = { "Черви", "Бубны", "Пики", "Трефы" };
+
+        foreach (string meanings in meaningCards)
+        {
+            foreach (string suits in suitCards)
+            {
+                _deck.Add(new Card(meanings, suits));
+            }
+        }
+
+        ShuffleDeck(_deck);
+    }
+    
+    private void ShuffleDeck(List<Card> cards)
     {
         Random random = new Random();
 
@@ -119,7 +121,7 @@ class CardDeck
     }
 }
 
-class Card
+public class Card
 {
     public Card(string meaningCard, string suitCard)
     {
@@ -136,14 +138,14 @@ class Card
     }
 } 
 
-class Player
+public class Player
 {
     private List<Card> _cardsOnHand = new List<Card>();
-    private const int _maxCardsOnHand = 5;
+    private const int MaxCardsOnHand = 5;
 
     public void DrawCard(CardDeck deck)
     {
-        if (_cardsOnHand.Count < _maxCardsOnHand)
+        if (_cardsOnHand.Count < MaxCardsOnHand)
         {
             Card card = deck.GiveCard();
 
