@@ -109,15 +109,12 @@ public class CardDeck
     {
         Random random = new Random();
 
-        int amountCardsInDeck = _deck.Count;
-
-        while (amountCardsInDeck > 1)
+        for (int amountCardsInDeck = _deck.Count; amountCardsInDeck > 1; amountCardsInDeck--)
         {
-            amountCardsInDeck--;
-            int randomValue = random.Next(amountCardsInDeck + 1);
+            int randomValue = random.Next(amountCardsInDeck);
             Card value = _deck[randomValue];
             _deck[randomValue] = _deck[amountCardsInDeck];
-            _deck[amountCardsInDeck] = value;
+            _deck[amountCardsInDeck - 1] = value;
         }
     }
 }
