@@ -15,7 +15,7 @@ internal class Program
 public class Casino
 {
     private Player _user = new Player();
-    private CardDeck _deck = new CardDeck();
+    private Deck _pack = new Deck();
 
     public void PlayGame()
     {
@@ -23,17 +23,14 @@ public class Casino
         const string CommandShowAllCards = "2";
         const string CommandExit = "3";
 
-        int maxCardsOnHand = 5;
-
         bool isPlaying = true;
 
-        _deck.CreateDeck();
-        _deck.ShuffleDeck();
+        _pack.Pack();
 
         while (isPlaying)
         {
             Console.WriteLine("Добро пожаловать в казино!");
-            Console.WriteLine($"Максимальное количество карт на руке - {maxCardsOnHand} шт., но вы можете взять меньше.");
+            Console.WriteLine($"Максимальное количество карт на руке - {Player.MaxCardsOnHand} шт., но вы можете взять меньше.");
             Console.WriteLine("Выберите действие:");
             Console.WriteLine($"{CommandTakeCard} - Взять карту.");
             Console.WriteLine($"{CommandShowAllCards} - Посмотреть все карты на руке.");
@@ -43,8 +40,24 @@ public class Casino
             switch (userInput)
             {
                 case CommandTakeCard:
-                    Card drawnCard = _deck.GiveCard();
-                    _user.DrawCard(drawnCard);
+
+                    if (_user.CanDraw())
+                    {
+                        Card drawnCard = _pack.GiveCard();
+
+                        if (drawnCard != null)
+                        {
+                            _user.DrawCard(drawnCard);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Невозможно взять карту. Колода пуста.");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("У Вас уже максимальное количество карт.");
+                    }
                     break;
 
                 case CommandShowAllCards:
@@ -68,16 +81,16 @@ public class Casino
     }
 }
 
-public class CardDeck
+public class Deck
 {
-    private List<Card> _deck = new List<Card>();
+    private List<Card> _pack = new List<Card>();
 
     public Card GiveCard()
     {
-        if(_deck.Count > 0)
+        if(_pack.Count > 0)
         {
-            Card cardToGive = _deck[_deck.Count - 1];
-            _deck.RemoveAt(_deck.Count - 1);
+            Card cardToGive = _pack[_pack.Count - 1];
+            _pack.RemoveAt(_pack.Count - 1);
 
             return cardToGive;
         }
@@ -89,74 +102,80 @@ public class CardDeck
         }
     }
 
-    public void CreateDeck()
+    private void Create()
     {
-        _deck.Clear();
+        _pack.Clear();
 
-        string[] meaningsCards = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "Король", "Королева", "Валет", "Туз" };
-        string[] suitsCards = { "Черви", "Бубны", "Пики", "Трефы" };
+        string[] meanings = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "Король", "Королева", "Валет", "Туз" };
+        string[] suits = { "Черви", "Бубны", "Пики", "Трефы" };
 
-        foreach (string meaning in meaningsCards)
+        foreach (string meaning in meanings)
         {
-            foreach (string suit in suitsCards)
+            foreach (string suit in suits)
             {
-                _deck.Add(new Card(meaning, suit));
+                _pack.Add(new Card(meaning, suit));
             }
         }
     }
 
-    public void ShuffleDeck()
+    private void Shuffle()
     {
         Random random = new Random();
 
-        for (int amountCardsInDeck = _deck.Count; amountCardsInDeck > 1; amountCardsInDeck--)
+        for (int amountCardsInDeck = _pack.Count; amountCardsInDeck > 1; amountCardsInDeck--)
         {
             int randomValue = random.Next(amountCardsInDeck);
-            Card value = _deck[randomValue];
-            _deck[randomValue] = _deck[amountCardsInDeck];
-            _deck[amountCardsInDeck - 1] = value;
+            Card value = _pack[randomValue];
+            _pack[randomValue] = _pack[amountCardsInDeck - 1];
+            _pack[amountCardsInDeck - 1] = value;
         }
+    }
+
+    public void Pack()
+    {
+        Create();
+        Shuffle();
     }
 }
 
 public class Card
 {
-    public Card(string meaningCard, string suitCard)
+    public Card(string meaning, string suit)
     {
-        MeaningCard = meaningCard;
-        SuitCard = suitCard;
+        Meaning = meaning;
+        Suit = suit;
     }
 
-    public string MeaningCard { get; private set; }
-    public string SuitCard { get; private set; }
+    public string Meaning { get; private set; }
+    public string Suit { get; private set; }
 
-    public void ShowInfoCard()
+    public void ShowInfo()
     {
-        Console.WriteLine($"Карта со значением - {MeaningCard}, масть - {SuitCard}.");
+        Console.WriteLine($"Карта со значением - {Meaning}, масть - {Suit}.");
     }
 } 
 
 public class Player
 {
+    public const int MaxCardsOnHand = 5;
     private List<Card> _cardsOnHand = new List<Card>();
-    private const int MaxCardsOnHand = 5;
+
+    public bool CanDraw()
+    {
+        return _cardsOnHand.Count < MaxCardsOnHand;
+    }
 
     public void DrawCard(Card card)
     {
-        if (card != null && _cardsOnHand.Count < MaxCardsOnHand)
-        {
-            _cardsOnHand.Add(card);
-            Console.WriteLine("Вы взяли карту: ");
-            card.ShowInfoCard();
-        }
-        else if (_cardsOnHand.Count >= MaxCardsOnHand)
-        {
-            Console.WriteLine("У игрока уже максимльное количество карт!");
-        }
-        else
+        if (card == null)
         {
             Console.WriteLine("Невозможно взять карту.");
+            return;
         }
+
+        _cardsOnHand.Add(card);
+        Console.WriteLine("Вы взяли карту: ");
+        card.ShowInfo();
     }
 
     public void ShowCardsOnHand()
@@ -167,7 +186,7 @@ public class Player
 
             foreach (var card in _cardsOnHand)
             {
-                card.ShowInfoCard();
+                card.ShowInfo();
             }
         }
         else
