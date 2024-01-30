@@ -15,7 +15,12 @@ internal class Program
 public class Casino
 {
     private Player _user = new Player();
-    private Deck _pack = new Deck();
+    private Deck _deck = new Deck();
+
+    public Casino()
+    {
+        _deck.Initialize();
+    }
 
     public void PlayGame()
     {
@@ -24,8 +29,6 @@ public class Casino
         const string CommandExit = "3";
 
         bool isPlaying = true;
-
-        _pack.Pack();
 
         while (isPlaying)
         {
@@ -40,24 +43,7 @@ public class Casino
             switch (userInput)
             {
                 case CommandTakeCard:
-
-                    if (_user.CanDraw())
-                    {
-                        Card drawnCard = _pack.GiveCard();
-
-                        if (drawnCard != null)
-                        {
-                            _user.DrawCard(drawnCard);
-                        }
-                        else
-                        {
-                            Console.WriteLine("Невозможно взять карту. Колода пуста.");
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine("У Вас уже максимальное количество карт.");
-                    }
+                    TryTakeCard();
                     break;
 
                 case CommandShowAllCards:
@@ -79,18 +65,39 @@ public class Casino
             Console.Clear();
         }
     }
+
+    private void TryTakeCard()
+    {
+        if (_user.CanDraw())
+        {
+            Card drawnCard = _deck.GiveCard();
+
+            if (drawnCard != null)
+            {
+                _user.DrawCard(drawnCard);
+            }
+            else
+            {
+                Console.WriteLine("Невозможно взять карту. Колода пуста.");
+            }
+        }
+        else
+        {
+            Console.WriteLine("У Вас уже максимальное количество карт.");
+        }
+    }
 }
 
 public class Deck
 {
-    private List<Card> _pack = new List<Card>();
+    private List<Card> _cards = new List<Card>();
 
     public Card GiveCard()
     {
-        if(_pack.Count > 0)
+        if(_cards.Count > 0)
         {
-            Card cardToGive = _pack[_pack.Count - 1];
-            _pack.Remove(cardToGive);
+            Card cardToGive = _cards[_cards.Count - 1];
+            _cards.Remove(cardToGive);
 
             return cardToGive;
         }
@@ -102,9 +109,15 @@ public class Deck
         }
     }
 
+    public void Initialize()
+    {
+        Create();
+        Shuffle();
+    }
+
     private void Create()
     {
-        _pack.Clear();
+        _cards.Clear();
 
         string[] meanings = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "Король", "Королева", "Валет", "Туз" };
         string[] suits = { "Черви", "Бубны", "Пики", "Трефы" };
@@ -113,7 +126,7 @@ public class Deck
         {
             foreach (string suit in suits)
             {
-                _pack.Add(new Card(meaning, suit));
+                _cards.Add(new Card(meaning, suit));
             }
         }
     }
@@ -122,19 +135,13 @@ public class Deck
     {
         Random random = new Random();
 
-        for (int amountCardsInDeck = _pack.Count; amountCardsInDeck > 1; amountCardsInDeck--)
+        for (int i = _cards.Count; i > 1; i--)
         {
-            int randomValue = random.Next(amountCardsInDeck);
-            Card value = _pack[randomValue];
-            _pack[randomValue] = _pack[amountCardsInDeck - 1];
-            _pack[amountCardsInDeck - 1] = value;
+            int randomValue = random.Next(i);
+            Card value = _cards[randomValue];
+            _cards[randomValue] = _cards[i - 1];
+            _cards[i - 1] = value;
         }
-    }
-
-    public void Pack()
-    {
-        Create();
-        Shuffle();
     }
 }
 
@@ -157,8 +164,9 @@ public class Card
 
 public class Player
 {
-    public const int MaxCardsOnHand = 5;
     private List<Card> _cardsOnHand = new List<Card>();
+
+    public static int MaxCardsOnHand { get; private set; } = 5;
 
     public bool CanDraw()
     {
