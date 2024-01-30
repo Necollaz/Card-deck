@@ -90,7 +90,7 @@ public class Deck
         if(_pack.Count > 0)
         {
             Card cardToGive = _pack[_pack.Count - 1];
-            _pack.RemoveAt(_pack.Count - 1);
+            _pack.Remove(cardToGive);
 
             return cardToGive;
         }
